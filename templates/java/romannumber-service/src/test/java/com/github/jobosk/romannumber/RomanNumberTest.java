@@ -111,5 +111,20 @@ public class RomanNumberTest {
     public void getRoman_when1000_isOk() {
         assertEquals("M", service.getRoman(1000));
     }
+
+    @Test
+    public void getRoman_when1999_isOk() {
+        assertEquals("MCMXCIX", service.getRoman(1999));
+    }
+
+    @Test
+    public void getRoman_when2135_isOk() {
+        assertEquals("MMCXXXV", service.getRoman(2135));
+    }
+
+    @Test
+    public void getRoman_when2999_isOk() {
+        assertEquals("MMCMXCIX", service.getRoman(2999));
+    }
 }
 

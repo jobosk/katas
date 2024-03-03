@@ -1,39 +1,49 @@
 package com.github.jobosk.romannumber.service;
 
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class RomanNumberService {
 
-    final List<Pair<String, String>> replaces = List.of(
-            Pair.of("IIII", "IV")
-            , Pair.of("IVI", "V")
-            , Pair.of("VIV", "IX")
-            , Pair.of("IXI", "X")
-            , Pair.of("XXXXX", "L")
-            , Pair.of("LL", "C")
-            , Pair.of("CCCC", "CD")
-            , Pair.of("CDC", "D")
-            , Pair.of("DCD", "CM")
-            , Pair.of("CMC", "M")
-    );
-
     public String getRoman(final int arabicNumber) {
-        String result = "";
-        for (int i = 1; i <= arabicNumber; i++) {
-            result += "I";
-            result = applyReplaces(result, replaces);
-        }
-        return result;
+        final AtomicInteger current = new AtomicInteger(arabicNumber);
+        final StringBuilder builder = new StringBuilder();
+        builder.append(applyRomanForward(current, "M", 1000));
+        applyRomanBackwards(current, "CM", 900)
+                .ifPresent(builder::append);
+        builder.append(applyRomanForward(current, "D", 500));
+        applyRomanBackwards(current, "CD", 400)
+                .ifPresent(builder::append);
+        builder.append(applyRomanForward(current, "C", 100));
+        applyRomanBackwards(current, "XC", 90)
+                .ifPresent(builder::append);
+        builder.append(applyRomanForward(current, "L", 50));
+        applyRomanBackwards(current, "XL", 40)
+                .ifPresent(builder::append);
+        builder.append(applyRomanForward(current, "X", 10));
+        applyRomanBackwards(current, "IX", 9)
+                .ifPresent(builder::append);
+        builder.append(applyRomanForward(current, "V", 5));
+        applyRomanBackwards(current, "IV", 4)
+                .ifPresent(builder::append);
+        builder.append(applyRomanForward(current, "I", 1));
+        return builder.toString();
     }
 
-    private String applyReplaces(String result, final List<Pair<String, String>> replaces) {
-        for (final Pair<String, String> replace : replaces) {
-            result = result.replace(replace.getFirst(), replace.getSecond());
+    private String applyRomanForward(final AtomicInteger rest, final String character, final int arabicNumber) {
+        final int times = rest.get() / arabicNumber;
+        rest.getAndAdd(-times * arabicNumber);
+        return String.valueOf(character).repeat(Math.max(0, times));
+    }
+
+    private Optional<String> applyRomanBackwards(final AtomicInteger rest, final String character, final int arabicNumber) {
+        if (rest.get() / arabicNumber > 0) {
+            rest.getAndAdd(-arabicNumber);
+            return Optional.of(character);
         }
-        return result;
+        return Optional.empty();
     }
 }
